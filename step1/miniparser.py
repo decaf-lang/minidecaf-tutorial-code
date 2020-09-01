@@ -54,11 +54,11 @@ class Parser:
 def default():
     # 描述我们 step1 的语法
     rules = """
-    prog : func
-    func : ty Ident Lparen Rparen Lbrace stmt Rbrace
-    ty   : Int
-    stmt : Return expr Semicolon
-    expr : Integer
+program    : function
+function   : type Identifier Lparen Rparen Lbrace statement Rbrace
+type       : Int
+statement  : Return expression Semicolon
+expression : Integer
     """
 
     parser = Parser.fromRules(rules)
@@ -68,5 +68,5 @@ def default():
 
 
 if __name__ == "__main__":
-    print(default().parse("prog"))
+    print(default().parse("program"))
 

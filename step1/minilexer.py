@@ -3,7 +3,7 @@ import re
 
 class TokenType:
     def __init__(self, name:str, ptn:str, action=None, keepText=False):
-        """name 比如 Ident, Integer，ptn 是一个正则表达式。
+        """name 比如 Identifier, Integer，ptn 是一个正则表达式。
         keepText 是给 parser 用的，让输出漂亮一点；
         action 可以是 "ignore" 或者 "error"，方便忽略空白字符和报错"""
         self.name = name
@@ -46,8 +46,9 @@ class Lexer:
 
 
 def dumpLexerTokens(lexer):
+    print(f"{'token kind':<12} {'text':<20}")
     for (typ, text) in lexer.lex():
-        print(f"{typ.name:<10} {text:<20}")
+        print(f"{typ.name:<12} {text:<20}")
 
 
 def default():
@@ -67,7 +68,7 @@ def default():
         TokenType("Rparen", "\\)"),
         TokenType("Semicolon", ";"),
         # 标识符。
-        TokenType("Ident", f"{identLeadChar}{wordChar}*", keepText=True),
+        TokenType("Identifier", f"{identLeadChar}{wordChar}*", keepText=True),
         # 整数。非负，可以有前导零。
         TokenType("Integer", f"{digitChar}+", keepText=True),
         # 空白。所有空白都被忽略。
