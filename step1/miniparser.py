@@ -32,7 +32,7 @@ class Parser:
 
     def parse(self, nonterm:str):
         """nonterm 是一个非终结符。分析输入，返回一个以 nonterm 为根的语法树。
-        你不需要看懂这个算法，即使它不是很难！"""
+        你不必看懂这个算法，虽然它不是很难。"""
         children = []
         for child in self.rules[nonterm]:
             if child[0] in BIG_LETTERS:

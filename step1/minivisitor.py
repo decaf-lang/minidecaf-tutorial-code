@@ -38,6 +38,9 @@ class TargetCodeEmission(Visitor):
         expr = node.children[1]
         Integer = expr.children[0]
         value = int(Integer.text)
+        # 简单的语义检查：int 范围正确
+        if value < -2147483648 or value >= 2147483648:
+            raise Exception(f"{value} is too large for int")
         # 下面的就是汇编模板
         print(f""".text
 	.globl	main
