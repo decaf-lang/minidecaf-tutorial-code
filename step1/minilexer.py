@@ -1,54 +1,52 @@
 import re
 
 
-class TokenType:
-    def __init__(self, name:str, ptn:str, action=None, keepText=False):
+class TokenKind:
+    def __init__(self, name:str, ptn:str, action=None):
         """name 比如 Identifier, Integer，ptn 是一个正则表达式。
-        keepText 是给 parser 用的，让输出漂亮一点；
-        action 可以是 "ignore" 或者 "error"，方便忽略空白字符和报错"""
+        action 可以是 "skip" 或者 "error"，方便忽略空白字符和报错"""
+        assert action in { None, "skip", "error" }
         self.name = name
         self.ptn = re.compile('^' + ptn) # ^ 表示输入开头
         self.action = action
-        self.keepText = keepText
 
-    def __call__(self, txt:str):
+    def matchLength(self, txt:str):
         m = self.ptn.search(txt)
         if m is not None:
             return m.span()[1]
         return 0
 
 
+class Token:
+    def __init__(self, kind:TokenKind, text:str):
+        self.kind = kind
+        self.text = text
+
 
 class Lexer:
-    def __init__(self, tokens:list):
-        self.tokens = tokens # [TokenType]
+    def __init__(self, tokenKinds:list):
+        self.tokenKinds = tokenKinds
 
     def setInput(self, txt:str):
         self.txt = txt
         self.pos = 0
 
     def lex(self):
-        """用 yield 返回一个 generator，表示 token stream，后续阶段按需从 generator 里面拿 token；
-        而不是一口气做完所有词法分析，然后返回一个列表，包含了所有的 token。"""
+        """用 yield 返回一个 generator，表示 token stream，后续阶段按需从 generator 里面拿 token。
+        与之相对的是一口气做完所有词法分析，然后返回一个列表，包含了所有的 token。"""
         while len(self.txt) != 0:
-            matchResult = [tok(self.txt) for tok in self.tokens]
+            matchResult = [tk.matchLength(self.txt) for tk in self.tokenKinds]
             # 如果有多个最大值, max 返回第一个
             i, l = max(enumerate(matchResult), key=lambda x:x[1])
-            tt = self.tokens[i]
-            if tt.action == "skip":
+            tk = self.tokenKinds[i]
+            if tk.action == "skip":
                 pass
-            elif tt.action == "error":
+            elif tk.action == "error":
                 raise Exception(f"lex error at input position {self.pos}")
             else:
-                yield (tt, self.txt[:l])
+                yield Token(tk, self.txt[:l])
             self.txt = self.txt[l:]
             self.pos += l
-
-
-def dumpLexerTokens(lexer):
-    print(f"{'token kind':<12} {'text':<20}")
-    for (typ, text) in lexer.lex():
-        print(f"{typ.name:<12} {text:<20}")
 
 
 def default():
@@ -59,22 +57,22 @@ def default():
 
     lexer = Lexer([
         # 关键字。每个关键字用一个单独的 Token 描述。
-        TokenType("Int", "int"),
-        TokenType("Return", "return"),
+        TokenKind("Int", "int"),
+        TokenKind("Return", "return"),
         # 标点符号。
-        TokenType("Lbrace", "\\{"),
-        TokenType("Rbrace", "\\}"),
-        TokenType("Lparen", "\\("),
-        TokenType("Rparen", "\\)"),
-        TokenType("Semicolon", ";"),
+        TokenKind("Lbrace", "\\{"),
+        TokenKind("Rbrace", "\\}"),
+        TokenKind("Lparen", "\\("),
+        TokenKind("Rparen", "\\)"),
+        TokenKind("Semicolon", ";"),
         # 标识符。
-        TokenType("Identifier", f"{identLeadChar}{wordChar}*", keepText=True),
+        TokenKind("Identifier", f"{identLeadChar}{wordChar}*"),
         # 整数。非负，可以有前导零。
-        TokenType("Integer", f"{digitChar}+", keepText=True),
+        TokenKind("Integer", f"{digitChar}+"),
         # 空白。所有空白都被忽略。
-        TokenType("Whitespace", f"{whitespaceChar}+", action="skip"),
-        # 我们不认识的，报错。
-        TokenType("Error", f".", action="error"),
+        TokenKind("Whitespace", f"{whitespaceChar}+", action="skip"),
+        # 我们不认识的字符（比如汉字），报错。
+        TokenKind("Error", f".", action="error"),
     ])
 
     lexer.setInput("""\
@@ -83,6 +81,13 @@ def default():
     }
     """)
     return lexer
+
+
+def dumpLexerTokens(lexer):
+    print(f"{'token kind':<12} {'text':<20}")
+    print(f"{'-'*11:<12} {'-'*19:<20}")
+    for tok in lexer.lex():
+        print(f"{tok.kind.name:<12} {tok.text:<20}")
 
 
 if __name__ == "__main__":

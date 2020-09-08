@@ -5,7 +5,7 @@ import minilexer
 BIG_LETTERS = { chr(x) for x in range(65, 91) }
 
 
-class Node:
+class ASTNode:
     """语法树结点。叶子结点是终结符、内部结点是非终结符。"""
     def __init__(self, label:str, text:str=None, children:list=[]):
         """如果是叶子结点（即 token），那 text 是这个 token 的字符串，并且 children 为空。
@@ -28,22 +28,21 @@ class Parser:
 
     def setInput(self, lexer):
         self.lex = lexer.lex()
-        self.tree = []
 
-    def parse(self, nonterm:str):
-        """nonterm 是一个非终结符。分析输入，返回一个以 nonterm 为根的语法树。
+    def parse(self, sym:str):
+        """sym 是一个非终结符的名字。
         你不必看懂这个算法，虽然它不是很难。"""
         children = []
-        for child in self.rules[nonterm]:
-            if child[0] in BIG_LETTERS:
+        for child in self.rules[sym]:
+            if child[0] in BIG_LETTERS: # 终结符
                 # 按需返回 token
-                typ, text = next(self.lex)
-                if typ.name != child: raise Exception("syntax error")
-                text = text if typ.keepText else ""
-                children.append(Node(typ.name, text=text))
-            else:
+                tok = next(self.lex)
+                if tok.kind.name != child:
+                    raise Exception(f"syntax error, {child} expected but {tok.kind.name} found")
+                children.append(ASTNode(tok.kind.name, text=tok.text))
+            else: # 非终结符
                 children.append(self.parse(child))
-        return Node(nonterm, children=children)
+        return ASTNode(sym, children=children)
 
     def fromRules(s):
         rules = [line.split() for line in s.strip().split('\n')]
