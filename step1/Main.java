@@ -8,7 +8,7 @@ public class Main {
         Lexer       lexer  = new ExprLexer(input);
         TokenStream tokens = new CommonTokenStream(lexer);
         ExprParser  parser = new ExprParser(tokens);
-        ParseTree   tree   = parser.expr(); // 取得一颗以 expr 为根的 AST
+        ParseTree   tree   = parser.expr(); // 取得一棵以 expr 为根的 AST
         System.out.println(tree.toStringTree(parser));
     }
 }
