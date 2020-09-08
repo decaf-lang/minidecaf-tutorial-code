@@ -52,7 +52,7 @@ def main():
     lexer   = ExprLexer(input)
     tokens  = CommonTokenStream(lexer)
     parser  = ExprParser(tokens)
-    tree    = parser.expr() # 取得一颗以 expr 为根的 AST
+    tree    = parser.expr() # 取得一棵以 expr 为根的 AST
     visitor = EvalVisitor()
     print(tree.accept(visitor))
 
