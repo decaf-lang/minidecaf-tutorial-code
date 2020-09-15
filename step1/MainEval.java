@@ -10,6 +10,7 @@ public class MainEval {
         Lexer       lexer   = new ExprLexer(input);
         TokenStream tokens  = new CommonTokenStream(lexer);
         ExprParser  parser  = new ExprParser(tokens);
+        parser.setErrorHandler(new BailErrorStrategy()); // 设置错误处理
         ParseTree   tree    = parser.expr(); // 取得一棵以 expr 为根的 AST
         EvalVisitor visitor = new EvalVisitor();
         System.out.println(tree.accept(visitor));
